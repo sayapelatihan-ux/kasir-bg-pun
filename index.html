@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kasir & Lokasi - Ayam Geprek BG PUN</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #struk-area, #struk-area * { visibility: visible; }
+      #struk-area { position: fixed; left: 0; top: 0; width: 58mm; font-family: monospace; font-size: 12px; }
+    }
+    .tab-btn.active {
+      border-bottom: 3px solid #dc2626;
+      color: #dc2626;
+      font-weight: 700;
+      background-color: #fef2f2;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen pb-14">
+
+  <header class="bg-red-700 text-white shadow sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center gap-3">
+        <div class="bg-yellow-400 text-red-700 w-11 h-11 rounded-2xl flex items-center justify-center font-extrabold text-xl shadow">
+          <i class="fas fa-fire"></i>
+        </div>
+        <div>
+          <h1 id="hdr-nama" class="text-lg sm:text-xl font-extrabold tracking-wide uppercase">AYAM GEPREK BG PUN</h1>
+          <p class="text-xs text-red-100">
+            <i class="fas fa-map-marker-alt text-yellow-300 mr-1"></i>
+            <span id="hdr-alamat">Jl. Wismarini, Kec. Pringsewu, Kabupaten Pringsewu, Lampung 35373</span>
+          </p>
+          <p class="text-[11px] text-yellow-200">
+            Pemilik: <strong id="hdr-pemilik">Bg Pun</strong> &bull; <span id="hdr-jam">Setiap Hari | 10.00 - 22.00 WIB</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a id="hdr-maps" href="https://www.google.com/maps/search/?api=1&query=Jl.+Wismarini+Pringsewu+Lampung" target="_blank" rel="noopener" class="bg-red-900 hover:bg-red-950 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5">
+          <i class="fas fa-map-marked-alt text-yellow-300"></i> Google Maps
+        </a>
+        <button type="button" id="btn-reset-demo" class="bg-yellow-400 hover:bg-yellow-500 text-red-950 font-bold text-xs px-3 py-2 rounded-lg shadow">
+          <i class="fas fa-rotate-left mr-1"></i> Reset Awal
+        </button>
+      </div>
+    </div>
+
+    <nav id="main-tabs" class="bg-white text-gray-600 border-b">
+      <div class="max-w-7xl mx-auto px-2 sm:px-4 flex gap-1 sm:gap-2 overflow-x-auto text-sm">
+        <button type="button" data-tab="kasir" class="tab-btn active py-3 px-3.5 whitespace-nowrap">
+          <i class="fas fa-cash-register mr-1.5"></i>Kasir (POS)
+        </button>
+        <button type="button" data-tab="menu" class="tab-btn py-3 px-3.5 whitespace-nowrap">
+          <i class="fas fa-utensils mr-1.5"></i>Kelola Menu
+        </button>
+        <button type="button" data-tab="stok" class="tab-btn py-3 px-3.5 whitespace-nowrap">
+          <i class="fas fa-boxes mr-1.5"></i>Stok Bahan <span id="badge-stok" class="hidden ml-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+        </button>
+        <button type="button" data-tab="pengeluaran" class="tab-btn py-3 px-3.5 whitespace-nowrap">
+          <i class="fas fa-shopping-bag mr-1.5"></i>Pengeluaran
+        </button>
+        <button type="button" data-tab="laporan" class="tab-btn py-3 px-3.5 whitespace-nowrap">
+          <i class="fas fa-chart-line mr-1.5"></i>Laporan
+        </button>
+        <button type="button" data-tab="lokasi" class="tab-btn py-3 px-3.5 whitespace-nowrap">
+          <i class="fas fa-location-dot mr-1.5"></i>Lokasi &amp; Profil
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-4 space-y-6">
+
+    <!-- TAB KASIR -->
+    <section id="sec-kasir" class="tab-section grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 space-y-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm flex flex-wrap gap-2 justify-between items-center">
+          <div id="kat-bar" class="flex gap-1.5 flex-wrap">
+            <button type="button" data-kat="Semua" class="kat-btn bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Semua</button>
+            <button type="button" data-kat="Paket Hemat" class="kat-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold">Paket Hemat</button>
+            <button type="button" data-kat="Paket Spesial" class="kat-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold">Paket Spesial</button>
+            <button type="button" data-kat="Satuan" class="kat-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold">Satuan</button>
+            <button type="button" data-kat="Tambahan" class="kat-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold">Tambahan</button>
+            <button type="button" data-kat="Minuman" class="kat-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold">Minuman</button>
+          </div>
+          <input type="text" id="search-menu" placeholder="Cari menu..." class="border rounded-lg px-3 py-1.5 text-sm w-full sm:w-48" />
+        </div>
+        <div id="grid-menu-kasir" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm space-y-3 h-fit lg:sticky lg:top-28">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h2 class="font-bold text-base"><i class="fas fa-receipt text-red-600 mr-2"></i>Pesanan Aktif</h2>
+          <button type="button" id="btn-clear-cart" class="text-xs text-red-600 font-semibold hover:underline">Kosongkan</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs text-gray-500">Nama Pembeli</label>
+            <input type="text" id="inp-pelanggan" placeholder="Contoh: Mas Budi" class="w-full border rounded-lg px-2.5 py-1.5 text-sm" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">No. WA (Opsional)</label>
+            <input type="text" id="inp-nohp" placeholder="0812xxx" class="w-full border rounded-lg px-2.5 py-1.5 text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs text-gray-500">Tipe Pesanan</label>
+          <select id="inp-tipe" class="w-full border rounded-lg px-2.5 py-1.5 text-sm bg-white">
+            <option value="Makan di Tempat">Makan di Tempat</option>
+            <option value="Bungkus (Takeaway)">Bungkus (Takeaway)</option>
+            <option value="Pesanan WhatsApp">Pesanan WhatsApp</option>
+            <option value="Ojol">Ojol</option>
+          </select>
+        </div>
+
+        <div id="cart-items" class="space-y-2 max-h-56 overflow-y-auto border-y py-2">
+          <p class="text-center text-gray-400 text-sm py-5">Belum ada menu dipilih</p>
+        </div>
+
+        <div>
+          <label class="text-xs text-gray-500 block mb-1">Level Pedas &amp; Catatan</label>
+          <div class="flex gap-1 flex-wrap mb-1.5">
+            <button type="button" data-lvl="Level 0 (Tidak Pedas)" class="lvl-btn text-xs bg-gray-100 hover:bg-red-100 border px-2 py-1 rounded">Lvl 0</button>
+            <button type="button" data-lvl="Level 1 (Sedang)" class="lvl-btn text-xs bg-gray-100 hover:bg-red-100 border px-2 py-1 rounded">Lvl 1</button>
+            <button type="button" data-lvl="Level 3 (Pedas)" class="lvl-btn text-xs bg-gray-100 hover:bg-red-100 border px-2 py-1 rounded">Lvl 3</button>
+            <button type="button" data-lvl="Level 5 (Super Pedas)" class="lvl-btn text-xs bg-gray-100 hover:bg-red-100 border px-2 py-1 rounded">Lvl 5</button>
+          </div>
+          <input type="text" id="inp-catatan" placeholder="Contoh: Paha atas, sambal pisah..." class="w-full border rounded-lg px-2.5 py-1.5 text-sm" />
+        </div>
+
+        <div class="bg-gray-50 p-3 rounded-xl space-y-2">
+          <div class="flex justify-between text-base font-extrabold">
+            <span>TOTAL BAYAR</span>
+            <span id="txt-total" class="text-red-600">Rp 0</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-gray-500">Metode Bayar</label>
+              <select id="inp-metode" class="w-full border rounded-lg px-2 py-1.5 text-sm bg-white">
+                <option value="Tunai">Tunai</option>
+                <option value="QRIS">QRIS</option>
+                <option value="Transfer">Transfer</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">Uang Bayar (Rp)</label>
+              <input type="number" id="inp-bayar" placeholder="0" class="w-full border rounded-lg px-2 py-1.5 text-sm font-bold" />
+            </div>
+          </div>
+          <div class="flex gap-1 flex-wrap">
+            <button type="button" data-uang="pas" class="uang-btn text-[11px] bg-green-100 text-green-800 font-bold px-2 py-1 rounded">Uang Pas</button>
+            <button type="button" data-uang="20000" class="uang-btn text-[11px] bg-white border px-2 py-1 rounded">20rb</button>
+            <button type="button" data-uang="50000" class="uang-btn text-[11px] bg-white border px-2 py-1 rounded">50rb</button>
+            <button type="button" data-uang="100000" class="uang-btn text-[11px] bg-white border px-2 py-1 rounded">100rb</button>
+          </div>
+          <div class="flex justify-between text-sm font-bold pt-1">
+            <span>Kembalian:</span>
+            <span id="txt-kembali" class="text-green-600">Rp 0</span>
+          </div>
+          <button type="button" id="btn-proses-trx" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow">
+            <i class="fas fa-check-circle mr-1"></i> Simpan &amp; Cetak Struk
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB KELOLA MENU -->
+    <section id="sec-menu" class="tab-section hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl shadow-sm">
+        <h2 class="font-bold text-lg mb-4 text-red-600"><i class="fas fa-plus-circle mr-1"></i> Tambah / Ubah Menu</h2>
+        <form id="form-menu" class="grid grid-cols-1 sm:grid-cols-6 gap-3">
+          <input type="hidden" id="menu-id" />
+          <input type="text" id="menu-nama" required placeholder="Nama Menu" class="border rounded-lg px-3 py-2 text-sm sm:col-span-2" />
+          <select id="menu-kategori" class="border rounded-lg px-3 py-2 text-sm bg-white">
+            <option value="Paket Hemat">Paket Hemat</option>
+            <option value="Paket Spesial">Paket Spesial</option>
+            <option value="Satuan">Satuan</option>
+            <option value="Tambahan">Tambahan</option>
+            <option value="Minuman">Minuman</option>
+          </select>
+          <input type="number" id="menu-harga" required placeholder="Harga (Rp)" class="border rounded-lg px-3 py-2 text-sm" />
+          <select id="menu-status" class="border rounded-lg px-3 py-2 text-sm bg-white">
+            <option value="Tersedia">Tersedia</option>
+            <option value="Habis">Habis</option>
+          </select>
+          <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-sm">Simpan</button>
+          <input type="text" id="menu-deskripsi" placeholder="Deskripsi singkat menu (opsional)..." class="border rounded-lg px-3 py-2 text-sm sm:col-span-6" />
+        </form>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead class="bg-gray-100 text-gray-700">
+            <tr>
+              <th class="p-3">ID</th>
+              <th class="p-3">Nama Menu</th>
+              <th class="p-3">Kategori</th>
+              <th class="p-3">Harga</th>
+              <th class="p-3">Status</th>
+              <th class="p-3">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-menu" class="divide-y"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB STOK BAHAN -->
+    <section id="sec-stok" class="tab-section hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl shadow-sm">
+        <h2 class="font-bold text-lg mb-4 text-red-600"><i class="fas fa-boxes mr-1"></i> Tambah / Update Stok Bahan</h2>
+        <form id="form-stok" class="grid grid-cols-1 sm:grid-cols-6 gap-3">
+          <input type="hidden" id="stok-id" />
+          <input type="text" id="stok-nama" required placeholder="Nama Bahan" class="border rounded-lg px-3 py-2 text-sm sm:col-span-2" />
+          <input type="number" step="0.1" id="stok-sisa" required placeholder="Sisa" class="border rounded-lg px-3 py-2 text-sm" />
+          <input type="text" id="stok-satuan" required placeholder="Satuan (Kg/Potong/Pcs)" class="border rounded-lg px-3 py-2 text-sm" />
+          <input type="number" step="0.1" id="stok-min" required placeholder="Batas Min" class="border rounded-lg px-3 py-2 text-sm" />
+          <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-sm">Simpan</button>
+        </form>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead class="bg-gray-100 text-gray-700">
+            <tr>
+              <th class="p-3">Nama Bahan</th>
+              <th class="p-3">Sisa Stok</th>
+              <th class="p-3">Batas Min</th>
+              <th class="p-3">Status</th>
+              <th class="p-3">Update</th>
+              <th class="p-3">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-stok" class="divide-y"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB PENGELUARAN -->
+    <section id="sec-pengeluaran" class="tab-section hidden space-y-6">
+      <div class="bg-white p-5 rounded-xl shadow-sm">
+        <h2 class="font-bold text-lg mb-4 text-red-600"><i class="fas fa-shopping-basket mr-1"></i> Catat Pengeluaran Warung</h2>
+        <form id="form-exp" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <input type="text" id="exp-ket" required placeholder="Keterangan (cth: Ayam, Cabai, Gas)" class="border rounded-lg px-3 py-2 text-sm sm:col-span-2" />
+          <select id="exp-kat" class="border rounded-lg px-3 py-2 text-sm bg-white">
+            <option value="Bahan Baku Ayam & Bumbu">Bahan Baku Ayam &amp; Bumbu</option>
+            <option value="Kemasan & Plastik">Kemasan &amp; Plastik</option>
+            <option value="Gas & Listrik">Gas &amp; Listrik</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+          <div class="flex gap-2">
+            <input type="number" id="exp-nominal" required placeholder="Nominal (Rp)" class="border rounded-lg px-3 py-2 text-sm w-full" />
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-sm">Catat</button>
+          </div>
+        </form>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead class="bg-gray-100 text-gray-700">
+            <tr>
+              <th class="p-3">Waktu</th>
+              <th class="p-3">Keterangan</th>
+              <th class="p-3">Kategori</th>
+              <th class="p-3">Nominal</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-exp" class="divide-y"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB LAPORAN -->
+    <section id="sec-laporan" class="tab-section hidden space-y-6">
+      <div class="bg-white p-4 rounded-xl shadow-sm flex flex-wrap justify-between items-center gap-3">
+        <h2 class="font-bold text-base text-gray-800"><i class="fas fa-filter text-red-600 mr-1"></i> Filter Periode Laporan</h2>
+        <div id="lap-filter-bar" class="flex gap-2">
+          <button type="button" data-periode="hari" class="lap-btn bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Hari Ini</button>
+          <button type="button" data-periode="bulan" class="lap-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold">Bulan Ini</button>
+          <button type="button" data-periode="semua" class="lap-btn bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold">Semua Waktu</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500">
+          <p class="text-xs text-gray-500 font-bold uppercase">Total Pemasukan</p>
+          <p id="lap-omzet" class="text-2xl font-extrabold text-green-600 mt-1">Rp 0</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500">
+          <p class="text-xs text-gray-500 font-bold uppercase">Total Pengeluaran</p>
+          <p id="lap-keluar" class="text-2xl font-extrabold text-red-600 mt-1">Rp 0</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
+          <p class="text-xs text-gray-500 font-bold uppercase">Laba Bersih</p>
+          <p id="lap-laba" class="text-2xl font-extrabold text-blue-600 mt-1">Rp 0</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+        <div class="p-4 border-b font-bold text-gray-700">Riwayat Transaksi</div>
+        <table class="w-full text-left border-collapse text-sm">
+          <thead class="bg-gray-100 text-gray-700">
+            <tr>
+              <th class="p-3">ID &amp; Waktu</th>
+              <th class="p-3">Pelanggan</th>
+              <th class="p-3">Pesanan</th>
+              <th class="p-3">Catatan</th>
+              <th class="p-3">Total</th>
+              <th class="p-3">Struk</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-trx" class="divide-y"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB LOKASI & PROFIL -->
+    <section id="sec-lokasi" class="tab-section hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white p-5 rounded-xl shadow-sm space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="font-bold text-lg text-red-600"><i class="fas fa-map-marked-alt mr-1"></i> Detail Lokasi Warung</h2>
+          <a id="loc-maps-btn" href="https://www.google.com/maps/search/?api=1&query=Jl.+Wismarini+Pringsewu+Lampung" target="_blank" rel="noopener" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg">
+            <i class="fas fa-directions mr-1"></i> Buka Google Maps
+          </a>
+        </div>
+        <div class="p-4 bg-red-50 rounded-xl border border-red-200 space-y-1.5 text-sm">
+          <div class="font-extrabold text-base text-red-700" id="loc-nama">Ayam Geprek BG PUN</div>
+          <div class="text-xs italic text-red-600" id="loc-tagline">Ayam Krispi Geprek Sambal Pedas Nampol - Jl. Wismarini</div>
+          <p class="pt-1"><strong>Alamat Lengkap:</strong> <span id="loc-alamat">Jl. Wismarini, Kec. Pringsewu, Kabupaten Pringsewu, Lampung 35373</span></p>
+          <p><strong>Patokan / Akses Lokasi:</strong> <span id="loc-patokan">Kawasan Jl. Wismarini, Pringsewu — mudah diakses motor maupun mobil</span></p>
+          <p><strong>Pemilik:</strong> <span id="loc-pemilik">Bg Pun</span></p>
+          <p><strong>Jam Operasional:</strong> <span id="loc-jam">Setiap Hari | 10.00 - 22.00 WIB</span></p>
+          <p><strong>Kontak WhatsApp:</strong> <span id="loc-wa">6281234567890</span></p>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl shadow-sm">
+        <h2 class="font-bold text-lg text-gray-800 mb-4"><i class="fas fa-store mr-1 text-red-600"></i> Edit Profil Warung</h2>
+        <form id="form-profil" class="space-y-3 text-sm">
+          <div>
+            <label class="font-semibold text-gray-600 block mb-1">Nama Warung</label>
+            <input type="text" id="cfg-nama" required class="w-full border rounded-lg px-3 py-2" />
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600 block mb-1">Nama Pemilik</label>
+            <input type="text" id="cfg-pemilik" required class="w-full border rounded-lg px-3 py-2" />
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600 block mb-1">Alamat Lengkap</label>
+            <textarea id="cfg-alamat" rows="2" required class="w-full border rounded-lg px-3 py-2"></textarea>
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600 block mb-1">Patokan Lokasi</label>
+            <input type="text" id="cfg-patokan" class="w-full border rounded-lg px-3 py-2" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">No. WhatsApp</label>
+              <input type="text" id="cfg-wa" required class="w-full border rounded-lg px-3 py-2" />
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600 block mb-1">Jam Operasional</label>
+              <input type="text" id="cfg-jam" required class="w-full border rounded-lg px-3 py-2" />
+            </div>
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600 block mb-1">Link Google Maps</label>
+            <input type="url" id="cfg-maps-link" required class="w-full border rounded-lg px-3 py-2" />
+          </div>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl shadow">
+            <i class="fas fa-save mr-1"></i> Simpan Profil
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL STRUK -->
+  <div id="modal-struk" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl max-w-xs w-full p-5 shadow-2xl">
+      <div id="struk-area" class="text-xs font-mono text-gray-800 space-y-1 border-b pb-3">
+        <div class="text-center font-bold text-sm uppercase" id="struk-warung">AYAM GEPREK BG PUN</div>
+        <div class="text-center text-[10px]" id="struk-alamat">Jl. Wismarini, Pringsewu, Lampung</div>
+        <div class="text-center text-[10px] border-b border-dashed pb-2 mb-2">Owner: <span id="struk-owner">Bg Pun</span></div>
+        <div id="struk-meta" class="text-[11px] space-y-0.5 border-b border-dashed pb-2"></div>
+        <div id="struk-items" class="py-1 space-y-1 border-b border-dashed"></div>
+        <div id="struk-total" class="pt-1 space-y-0.5 font-bold"></div>
+        <div class="text-center pt-3 text-[11px]">Terima Kasih Atas Kunjungan Anda!</div>
+      </div>
+      <div class="space-y-2 mt-4">
+        <div class="flex gap-2">
+          <button type="button" id="btn-print-struk" class="flex-1 bg-red-600 text-white py-2 rounded-lg font-bold text-xs"><i class="fas fa-print mr-1"></i> Cetak</button>
+          <button type="button" id="btn-wa-struk" class="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold text-xs"><i class="fab fa-whatsapp mr-1"></i> Kirim WA</button>
+        </div>
+        <button type="button" id="btn-close-struk" class="w-full bg-gray-200 text-gray-800 py-2 rounded-lg font-bold text-xs">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const STORAGE_KEY = 'BG_PUN_STANDALONE_V1';
+      const getToday = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+      const getNow = () => new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+
+      const defaultState = () => ({
+        info: {
+          NAMA_WARUNG: 'Ayam Geprek BG PUN',
+          TAGLINE: 'Ayam Krispi Geprek Sambal Pedas Nampol - Jl. Wismarini',
+          ALAMAT: 'Jl. Wismarini, Kec. Pringsewu, Kabupaten Pringsewu, Lampung 35373',
+          PATOKAN: 'Kawasan Jl. Wismarini, Pringsewu — mudah diakses motor maupun mobil',
+          PEMILIK: 'Bg Pun',
+          NO_WA: '6281234567890',
+          JAM_BUKA: 'Setiap Hari | 10.00 - 22.00 WIB',
+          MAPS_LINK: 'https://www.google.com/maps/search/?api=1&query=Jl.+Wismarini+Pringsewu+Lampung'
+        },
+        menus: [
+          { id: 'MN-01', nama: 'Paket Geprek Original + Nasi', kategori: 'Paket Hemat', harga: 15000, status: 'Tersedia', deskripsi: 'Ayam krispi geprek sambal bawang + nasi hangat + lalapan' },
+          { id: 'MN-02', nama: 'Paket Geprek Sambal Matah + Nasi', kategori: 'Paket Hemat', harga: 17000, status: 'Tersedia', deskripsi: 'Ayam geprek dengan siraman sambal matah segar' },
+          { id: 'MN-03', nama: 'Paket Geprek Keju Mozarella + Nasi', kategori: 'Paket Spesial', harga: 20000, status: 'Tersedia', deskripsi: 'Ayam geprek dengan topping keju mozarella' },
+          { id: 'MN-04', nama: 'Paket Geprek Jumbo + Es Teh', kategori: 'Paket Spesial', harga: 22000, status: 'Tersedia', deskripsi: 'Ayam potongan jumbo + nasi hangat + es teh manis' },
+          { id: 'MN-05', nama: 'Ayam Geprek Tanpa Nasi', kategori: 'Satuan', harga: 12000, status: 'Tersedia', deskripsi: 'Ayam krispi geprek sambal pedas saja' },
+          { id: 'MN-06', nama: 'Nasi Putih Hangat', kategori: 'Tambahan', harga: 4000, status: 'Tersedia', deskripsi: '1 porsi nasi putih hangat' },
+          { id: 'MN-07', nama: 'Tahu / Tempe Geprek (Isi 2)', kategori: 'Tambahan', harga: 3000, status: 'Tersedia', deskripsi: 'Digoreng dadakan dan digeprek sambal' },
+          { id: 'MN-08', nama: 'Kol Goreng / Terong Goreng', kategori: 'Tambahan', harga: 5000, status: 'Tersedia', deskripsi: 'Gorengan pelengkap renyah' },
+          { id: 'MN-09', nama: 'Es Teh Manis', kategori: 'Minuman', harga: 4000, status: 'Tersedia', deskripsi: 'Es teh manis dingin segar' },
+          { id: 'MN-10', nama: 'Es Jeruk Peras', kategori: 'Minuman', harga: 6000, status: 'Tersedia', deskripsi: 'Es jeruk peras segar' },
+          { id: 'MN-11', nama: 'Air Mineral Botol', kategori: 'Minuman', harga: 3000, status: 'Tersedia', deskripsi: 'Air mineral 600ml' }
+        ],
+        transactions: [],
+        expenses: [],
+        stocks: [
+          { id: 'STK-01', nama: 'Ayam Potong Segar', sisa: 40, satuan: 'Potong', min: 10, updated: getNow() },
+          { id: 'STK-02', nama: 'Beras', sisa: 15, satuan: 'Kg', min: 5, updated: getNow() },
+          { id: 'STK-03', nama: 'Cabai Rawit Merah', sisa: 3, satuan: 'Kg', min: 1, updated: getNow() },
+          { id: 'STK-04', nama: 'Box Kemasan Takeaway', sisa: 80, satuan: 'Pcs', min: 20, updated: getNow() }
+        ]
+      });
+
+      let state = defaultState();
+      let cart = [];
+      let activeKat = 'Semua';
+      let activePeriode = 'hari';
+      let lastTrx = null;
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            state = Object.assign(defaultState(), parsed);
+            state.info = Object.assign(defaultState().info, parsed.info || {});
+          }
+        } catch (e) {
+          state = defaultState();
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {}
+      }
+
+      const rp = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+      const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || ''; };
+      const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+
+      function switchTab(tabName) {
+        document.querySelectorAll('.tab-section').forEach((sec) => {
+          sec.classList.toggle('hidden', sec.id !== 'sec-' + tabName);
+        });
+        document.querySelectorAll('#main-tabs .tab-btn').forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+      }
+
+      function renderHeaderAndProfile() {
+        const info = state.info;
+        setTxt('hdr-nama', info.NAMA_WARUNG);
+        setTxt('hdr-alamat', info.ALAMAT);
+        setTxt('hdr-pemilik', info.PEMILIK);
+        setTxt('hdr-jam', info.JAM_BUKA);
+        document.getElementById('hdr-maps').href = info.MAPS_LINK;
+        document.getElementById('loc-maps-btn').href = info.MAPS_LINK;
+
+        setTxt('loc-nama', info.NAMA_WARUNG);
+        setTxt('loc-tagline', info.TAGLINE);
+        setTxt('loc-alamat', info.ALAMAT);
+        setTxt('loc-patokan', info.PATOKAN);
+        setTxt('loc-pemilik', info.PEMILIK);
+        setTxt('loc-jam', info.JAM_BUKA);
+        setTxt('loc-wa', info.NO_WA);
+
+        setVal('cfg-nama', info.NAMA_WARUNG);
+        setVal('cfg-pemilik', info.PEMILIK);
+        setVal('cfg-alamat', info.ALAMAT);
+        setVal('cfg-patokan', info.PATOKAN);
+        setVal('cfg-wa', info.NO_WA);
+        setVal('cfg-jam', info.JAM_BUKA);
+        setVal('cfg-maps-link', info.MAPS_LINK);
+      }
+
+      function renderKasirGrid() {
+        const q = (document.getElementById('search-menu').value || '').toLowerCase();
+        const grid = document.getElementById('grid-menu-kasir');
+        const list = state.menus.filter((m) => (activeKat === 'Semua' || m.kategori === activeKat) && m.nama.toLowerCase().includes(q));
+        grid.innerHTML = list.map((m) => {
+          const habis = m.status !== 'Tersedia';
+          return `
+            <div data-add-menu="${m.id}" class="bg-white p-3.5 rounded-xl shadow-sm border ${habis ? 'opacity-50' : 'hover:border-red-500 cursor-pointer'} flex flex-col justify-between">
+              <div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-600">${m.kategori}</span>
+                <h3 class="font-bold text-sm mt-1">${m.nama}</h3>
+                <p class="text-[11px] text-gray-400 mt-0.5">${m.deskripsi || ''}</p>
+              </div>
+              <div class="mt-3 pt-2 border-t flex justify-between items-center">
+                <span class="font-extrabold text-red-600 text-sm">${rp(m.harga)}</span>
+                <span class="text-xs px-2 py-0.5 rounded ${habis ? 'bg-gray-200 text-gray-600' : 'bg-yellow-400 text-red-900 font-bold'}">${habis ? 'Habis' : '+ Tambah'}</span>
+              </div>
+            </div>
+          `;
+        }).join('') || '<p class="col-span-full text-center text-gray-400 py-8">Menu tidak ditemukan</p>';
+      }
+
+      const cartTotal = () => cart.reduce((s, c) => s + c.harga * c.qty, 0);
+
+      function hitungKembali() {
+        const total = cartTotal();
+        const bayar = Number(document.getElementById('inp-bayar').value || 0);
+        const selisih = bayar - total;
+        const el = document.getElementById('txt-kembali');
+        el.textContent = selisih >= 0 ? rp(selisih) : 'Kurang ' + rp(Math.abs(selisih));
+        el.className = selisih >= 0 ? 'text-green-600' : 'text-red-600';
+      }
+
+      function renderCart() {
+        const box = document.getElementById('cart-items');
+        if (!cart.length) {
+          box.innerHTML = '<p class="text-center text-gray-400 text-sm py-5">Belum ada menu dipilih</p>';
+          setTxt('txt-total', 'Rp 0');
+          hitungKembali();
+          return;
+        }
+        box.innerHTML = cart.map((item) => `
+          <div class="flex justify-between items-center text-sm bg-gray-50 p-2 rounded-lg">
+            <div class="pr-2">
+              <div class="font-bold truncate max-w-[140px]">${item.nama}</div>
+              <div class="text-xs text-gray-500">${rp(item.harga)}</div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button type="button" data-qty-id="${item.id}" data-delta="-1" class="w-6 h-6 bg-gray-200 rounded font-bold">-</button>
+              <span class="font-bold w-4 text-center">${item.qty}</span>
+              <button type="button" data-qty-id="${item.id}" data-delta="1" class="w-6 h-6 bg-red-600 text-white rounded font-bold">+</button>
+            </div>
+          </div>
+        `).join('');
+        setTxt('txt-total', rp(cartTotal()));
+        if (document.getElementById('inp-metode').value !== 'Tunai') {
+          setVal('inp-bayar', cartTotal());
+        }
+        hitungKembali();
+      }
+
+      function renderMenuTable() {
+        document.getElementById('tbody-menu').innerHTML = state.menus.map((m) => `
+          <tr>
+            <td class="p-3 font-mono text-xs">${m.id}</td>
+            <td class="p-3"><div class="font-bold">${m.nama}</div><div class="text-xs text-gray-400">${m.deskripsi || '-'}</div></td>
+            <td class="p-3">${m.kategori}</td>
+            <td class="p-3 font-bold">${rp(m.harga)}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${m.status === 'Tersedia' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${m.status}</span></td>
+            <td class="p-3"><button type="button" data-edit-menu="${m.id}" class="text-blue-600 hover:underline text-xs font-bold">Edit</button></td>
+          </tr>
+        `).join('');
+      }
+
+      function renderStokTable() {
+        let low = 0;
+        document.getElementById('tbody-stok').innerHTML = state.stocks.map((s) => {
+          const isLow = Number(s.sisa) <= Number(s.min);
+          if (isLow) low++;
+          return `
+            <tr class="${isLow ? 'bg-red-50' : ''}">
+              <td class="p-3 font-bold">${s.nama}</td>
+              <td class="p-3 font-bold ${isLow ? 'text-red-600' : ''}">${s.sisa} ${s.satuan}</td>
+              <td class="p-3 text-gray-500">${s.min} ${s.satuan}</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${isLow ? 'bg-red-600 text-white' : 'bg-green-100 text-green-700'}">${isLow ? 'Menipis' : 'Aman'}</span></td>
+              <td class="p-3 text-xs text-gray-400">${s.updated}</td>
+              <td class="p-3"><button type="button" data-edit-stok="${s.id}" class="text-blue-600 hover:underline text-xs font-bold">Update</button></td>
+            </tr>
+          `;
+        }).join('');
+        const badge = document.getElementById('badge-stok');
+        badge.textContent = low;
+        badge.classList.toggle('hidden', low === 0);
+      }
+
+      function renderExpTable() {
+        document.getElementById('tbody-exp').innerHTML = state.expenses.map((ex) => `
+          <tr>
+            <td class="p-3 text-xs text-gray-500">${ex.waktu}</td>
+            <td class="p-3 font-bold">${ex.keterangan}</td>
+            <td class="p-3">${ex.kategori}</td>
+            <td class="p-3 text-red-600 font-bold">${rp(ex.nominal)}</td>
+          </tr>
+        `).join('') || '<tr><td colspan="4" class="p-4 text-center text-gray-400">Belum ada pengeluaran</td></tr>';
+      }
+
+      function renderLaporan() {
+        const today = getToday();
+        const month = today.slice(0, 7);
+        const trxs = state.transactions.filter((t) => activePeriode === 'hari' ? t.tanggal === today : activePeriode === 'bulan' ? t.tanggal.startsWith(month) : true);
+        const exps = state.expenses.filter((e) => activePeriode === 'hari' ? e.tanggal === today : activePeriode === 'bulan' ? e.tanggal.startsWith(month) : true);
+        const omzet = trxs.reduce((s, t) => s + Number(t.total || 0), 0);
+        const keluar = exps.reduce((s, e) => s + Number(e.nominal || 0), 0);
+
+        setTxt('lap-omzet', rp(omzet));
+        setTxt('lap-keluar', rp(keluar));
+        setTxt('lap-laba', rp(omzet - keluar));
+
+        document.getElementById('tbody-trx').innerHTML = trxs.map((t) => `
+          <tr>
+            <td class="p-3 text-xs"><div class="font-bold">${t.id}</div><div class="text-gray-400">${t.waktu}</div></td>
+            <td class="p-3"><div class="font-bold">${t.pelanggan}</div><div class="text-xs text-gray-500">${t.tipe}</div></td>
+            <td class="p-3 text-xs">${t.items}</td>
+            <td class="p-3 text-xs italic text-gray-600">${t.catatan}</td>
+            <td class="p-3 font-bold text-green-600">${rp(t.total)}</td>
+            <td class="p-3"><button type="button" data-lihat-struk="${t.id}" class="text-red-600 hover:underline text-xs font-bold">Lihat</button></td>
+          </tr>
+        `).join('') || '<tr><td colspan="6" class="p-4 text-center text-gray-400">Belum ada transaksi</td></tr>';
+      }
+
+      function bukaStruk(trx) {
+        lastTrx = trx;
+        setTxt('struk-warung', state.info.NAMA_WARUNG);
+        setTxt('struk-alamat', state.info.ALAMAT);
+        setTxt('struk-owner', state.info.PEMILIK);
+        document.getElementById('struk-meta').innerHTML = `<div>No: ${trx.id}</div><div>Tgl: ${trx.waktu}</div><div>Plg: ${trx.pelanggan} (${trx.tipe})</div>`;
+        document.getElementById('struk-items').innerHTML = (trx.cartSnapshot || []).map((c) => `<div class="flex justify-between"><span>${c.nama} x${c.qty}</span><span>${(c.harga * c.qty).toLocaleString('id-ID')}</span></div>`).join('') + `<div class="text-[10px] italic mt-1">Catatan: ${trx.catatan}</div>`;
+        document.getElementById('struk-total').innerHTML = `<div class="flex justify-between"><span>TOTAL</span><span>${rp(trx.total)}</span></div><div class="flex justify-between font-normal"><span>BAYAR (${trx.metode})</span><span>${rp(trx.bayar)}</span></div><div class="flex justify-between font-normal"><span>KEMBALI</span><span>${rp(trx.kembali)}</span></div>`;
+        document.getElementById('modal-struk').classList.remove('hidden');
+      }
+
+      function renderAll() {
+        renderHeaderAndProfile();
+        renderKasirGrid();
+        renderCart();
+        renderMenuTable();
+        renderStokTable();
+        renderExpTable();
+        renderLaporan();
+      }
+
+      // Delegasi klik supaya selalu responsif
+      document.addEventListener('click', (e) => {
+        const tabBtn = e.target.closest('#main-tabs .tab-btn');
+        if (tabBtn) return switchTab(tabBtn.dataset.tab);
+
+        const katBtn = e.target.closest('.kat-btn');
+        if (katBtn) {
+          activeKat = katBtn.dataset.kat;
+          document.querySelectorAll('.kat-btn').forEach((b) => {
+            b.className = 'kat-btn px-3 py-1.5 rounded-lg text-xs font-bold ' + (b === katBtn ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700');
+          });
+          return renderKasirGrid();
+        }
+
+        const addCard = e.target.closest('[data-add-menu]');
+        if (addCard) {
+          const m = state.menus.find((x) => x.id === addCard.dataset.addMenu && x.status === 'Tersedia');
+          if (!m) return;
+          const found = cart.find((c) => c.id === m.id);
+          if (found) found.qty++;
+          else cart.push({ id: m.id, nama: m.nama, harga: m.harga, qty: 1 });
+          return renderCart();
+        }
+
+        const qtyBtn = e.target.closest('[data-qty-id]');
+        if (qtyBtn) {
+          const idx = cart.findIndex((c) => c.id === qtyBtn.dataset.qtyId);
+          if (idx > -1) {
+            cart[idx].qty += Number(qtyBtn.dataset.delta);
+            if (cart[idx].qty <= 0) cart.splice(idx, 1);
+          }
+          return renderCart();
+        }
+
+        const lvlBtn = e.target.closest('.lvl-btn');
+        if (lvlBtn) {
+          const inp = document.getElementById('inp-catatan');
+          inp.value = inp.value ? inp.value + ', ' + lvlBtn.dataset.lvl : lvlBtn.dataset.lvl;
+          return;
+        }
+
+        const uangBtn = e.target.closest('.uang-btn');
+        if (uangBtn) {
+          setVal('inp-bayar', uangBtn.dataset.uang === 'pas' ? cartTotal() : Number(uangBtn.dataset.uang));
+          return hitungKembali();
+        }
+
+        const editMenuBtn = e.target.closest('[data-edit-menu]');
+        if (editMenuBtn) {
+          const m = state.menus.find((x) => x.id === editMenuBtn.dataset.editMenu);
+          if (!m) return;
+          setVal('menu-id', m.id); setVal('menu-nama', m.nama); setVal('menu-kategori', m.kategori);
+          setVal('menu-harga', m.harga); setVal('menu-status', m.status); setVal('menu-deskripsi', m.deskripsi || '');
+          return window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        const editStokBtn = e.target.closest('[data-edit-stok]');
+        if (editStokBtn) {
+          const s = state.stocks.find((x) => x.id === editStokBtn.dataset.editStok);
+          if (!s) return;
+          setVal('stok-id', s.id); setVal('stok-nama', s.nama); setVal('stok-sisa', s.sisa);
+          setVal('stok-satuan', s.satuan); setVal('stok-min', s.min);
+          return window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        const lapBtn = e.target.closest('.lap-btn');
+        if (lapBtn) {
+          activePeriode = lapBtn.dataset.periode;
+          document.querySelectorAll('.lap-btn').forEach((b) => {
+            b.className = 'lap-btn px-3 py-1.5 rounded-lg text-xs font-bold ' + (b === lapBtn ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700');
+          });
+          return renderLaporan();
+        }
+
+        const lihatBtn = e.target.closest('[data-lihat-struk]');
+        if (lihatBtn) {
+          const trx = state.transactions.find((x) => x.id === lihatBtn.dataset.lihatStruk);
+          if (trx) return bukaStruk(trx);
+        }
+      });
+
+      document.getElementById('search-menu').addEventListener('input', renderKasirGrid);
+      document.getElementById('inp-bayar').addEventListener('input', hitungKembali);
+      document.getElementById('inp-metode').addEventListener('change', renderCart);
+      document.getElementById('btn-clear-cart').addEventListener('click', () => {
+        cart = [];
+        ['inp-pelanggan', 'inp-nohp', 'inp-catatan', 'inp-bayar'].forEach((id) => setVal(id, ''));
+        renderCart();
+      });
+
+      document.getElementById('btn-proses-trx').addEventListener('click', () => {
+        if (!cart.length) return alert('Pilih menu terlebih dahulu!');
+        const total = cartTotal();
+        const bayar = Number(document.getElementById('inp-bayar').value || 0);
+        if (bayar < total) return alert('Uang pembayaran kurang!');
+        const snap = cart.map((c) => ({ ...c }));
+        const trx = {
+          id: 'TRX-' + Date.now().toString().slice(-8),
+          waktu: getNow(),
+          tanggal: getToday(),
+          pelanggan: document.getElementById('inp-pelanggan').value.trim() || 'Umum',
+          noHp: document.getElementById('inp-nohp').value.trim(),
+          tipe: document.getElementById('inp-tipe').value,
+          items: snap.map((c) => `${c.nama} (${c.qty}x)`).join(', '),
+          catatan: document.getElementById('inp-catatan').value.trim() || '-',
+          total,
+          metode: document.getElementById('inp-metode').value,
+          bayar,
+          kembali: bayar - total,
+          cartSnapshot: snap
+        };
+        state.transactions.unshift(trx);
+        saveState();
+        renderLaporan();
+        bukaStruk(trx);
+        cart = [];
+        ['inp-pelanggan', 'inp-nohp', 'inp-catatan', 'inp-bayar'].forEach((id) => setVal(id, ''));
+        renderCart();
+      });
+
+      document.getElementById('form-menu').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const idVal = document.getElementById('menu-id').value;
+        const item = {
+          id: idVal || ('MN-' + Math.floor(100 + Math.random() * 900)),
+          nama: document.getElementById('menu-nama').value.trim(),
+          kategori: document.getElementById('menu-kategori').value,
+          harga: Number(document.getElementById('menu-harga').value || 0),
+          status: document.getElementById('menu-status').value,
+          deskripsi: document.getElementById('menu-deskripsi').value.trim()
+        };
+        const idx = state.menus.findIndex((x) => x.id === item.id);
+        if (idx > -1) state.menus[idx] = item; else state.menus.push(item);
+        saveState(); renderKasirGrid(); renderMenuTable(); e.target.reset(); setVal('menu-id', '');
+      });
+
+      document.getElementById('form-stok').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const idVal = document.getElementById('stok-id').value;
+        const item = {
+          id: idVal || ('STK-' + Math.floor(100 + Math.random() * 900)),
+          nama: document.getElementById('stok-nama').value.trim(),
+          sisa: Number(document.getElementById('stok-sisa').value || 0),
+          satuan: document.getElementById('stok-satuan').value.trim(),
+          min: Number(document.getElementById('stok-min').value || 0),
+          updated: getNow()
+        };
+        const idx = state.stocks.findIndex((x) => x.id === item.id);
+        if (idx > -1) state.stocks[idx] = item; else state.stocks.push(item);
+        saveState(); renderStokTable(); e.target.reset(); setVal('stok-id', '');
+      });
+
+      document.getElementById('form-exp').addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.expenses.unshift({
+          id: 'OUT-' + Date.now().toString().slice(-8),
+          waktu: getNow(),
+          tanggal: getToday(),
+          keterangan: document.getElementById('exp-ket').value.trim(),
+          kategori: document.getElementById('exp-kat').value,
+          nominal: Number(document.getElementById('exp-nominal').value || 0)
+        });
+        saveState(); renderExpTable(); renderLaporan(); e.target.reset();
+      });
+
+      document.getElementById('form-profil').addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.info = {
+          ...state.info,
+          NAMA_WARUNG: document.getElementById('cfg-nama').value.trim(),
+          PEMILIK: document.getElementById('cfg-pemilik').value.trim(),
+          ALAMAT: document.getElementById('cfg-alamat').value.trim(),
+          PATOKAN: document.getElementById('cfg-patokan').value.trim(),
+          NO_WA: document.getElementById('cfg-wa').value.trim(),
+          JAM_BUKA: document.getElementById('cfg-jam').value.trim(),
+          MAPS_LINK: document.getElementById('cfg-maps-link').value.trim()
+        };
+        saveState(); renderHeaderAndProfile(); alert('Profil warung tersimpan!');
+      });
+
+      document.getElementById('btn-print-struk').addEventListener('click', () => window.print());
+      document.getElementById('btn-close-struk').addEventListener('click', () => document.getElementById('modal-struk').classList.add('hidden'));
+      document.getElementById('btn-wa-struk').addEventListener('click', () => {
+        if (!lastTrx) return;
+        let hp = (lastTrx.noHp || '').replace(/[^0-9]/g, '');
+        if (hp.startsWith('0')) hp = '62' + hp.slice(1);
+        const msg = `*STRUK - ${state.info.NAMA_WARUNG}*\n${state.info.ALAMAT}\nNo: ${lastTrx.id}\nPelanggan: ${lastTrx.pelanggan}\nPesanan: ${lastTrx.items}\nCatatan: ${lastTrx.catatan}\nTotal: ${rp(lastTrx.total)}\nBayar: ${rp(lastTrx.bayar)}\nKembali: ${rp(lastTrx.kembali)}`;
+        window.open(hp ? `https://wa.me/${hp}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      });
+
+      document.getElementById('btn-reset-demo').addEventListener('click', () => {
+        if (!confirm('Kembalikan data ke pengaturan awal?')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        state = defaultState();
+        cart = [];
+        renderAll();
+      });
+
+      loadState();
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
